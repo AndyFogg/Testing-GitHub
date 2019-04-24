@@ -1,177 +1,210 @@
-# Running SQL Server 2017 on Linux Containers
+- [Unit 5: Building a Custom Docker Image](#unit-5-building-a-custom-docker-image)
+- [Unit 7: Using Docker Composer to deploy a multi-container application](#unit-7-using-docker-composer-to-deploy-a-multi-container-application)
 
-## Install Docker
+___
+
+# Unit 5: Building a Custom Docker Image
+
+## Create a Docker file
 
 1. To log on, click **Administrator**, type the password **Pa$$w0rdLinux**, and then click **Sign In**.
 2. At the bottom-left of the desktop, click **Show Applications**, and then click **Terminal**.
-3. To update the package index, type the following command, and then press Enter:
+3. To ensure you are in the home folder, type the following command, and then press Enter:
 
-    ```-nocode
-    sudo apt-get update
+    ```nocode
+    cd ~
     ```
 
-4. At the **Password** prompt, type **Pa$$w0rdLinux**, and then press Enter.
-5. To add install packages to allow apt to use a repository over HTTPS, type the following command, and then press Enter:
+4. To create and edit an empty text file, type the following command, and then press Enter:
 
-    ```-nocode
-    sudo apt-get install \
-    apt-transport-https \
-    ca-certificates \
-    curl \
-    gnupg-agent \
-    software-properties-common
+    ```nocode
+    nano Dockerfile
     ```
 
-6. To add the Docker GPG key, type the following command, and then press Enter:
+5. In the **nano** text editor, enter the following lines of text:
 
-    ```-nocode
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+    ```nocode
+    FROM microsoft/mssql-server-linux:latest
+    COPY containers/mssql-custom-image-example/SampleDB.bak /var/opt/mssql/data/SampleDB.bak
+    CMD ["/opt/mssql/bin/sqlservr"]
     ```
 
-7. To add install packages to allow apt to use a repository over HTTPS, type the following command, and then press Enter:
+6. Press Esc, and then press Ctrl+X.
+7. When asked if you want to save changes, press **y**, and then press Enter.
+8. To check the contents of the **Dockerfile**, type the following command, and then press Enter:
 
-    ```-nocode
-    sudo add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
+    ```nocode
+    cat Dockerfile
     ```
 
-8. To update the package index, type the following command, and then press Enter:
+## Build an image from the Docker file
 
-    ```-nocode
-    sudo apt-get update
+1. To build the new image from the Dockerfile, type the following command, and then press Enter:
+
+    ```nocode
+    sudo docker build . -t mssql-with-test-database
     ```
 
-9.  To install Docker, type the following command, and then press Enter:
+2. At the Password prompt, type **Pa$$w0rdLinux**, and then press Enter.
+3. When the build is complete, to list the images available, type the following command, and then press Enter:
 
-    ```-nocode
-    sudo apt-get install docker-ce docker-ce-cli containerd.io
-    ```
-
-10. If the status of Docker is not **Active**, type the following command, and then press Enter:
-
-    ```-nocode
-    sudo systemctl start docker
-    ```
-
-11. To automatically start Docker when the system boots up, type the following command, and then press Enter:
-
-    ```-nocode
-    sudo systemctl enable docker
-    ```
-
-## Create and Query a SQL Server Container
-
-1. In the terminal, to pull the SQL Server container image, type the following command, and then press Enter:
-
-    ```-nocode
-    sudo docker pull mcr.microsoft.com/mssql/server:2017-latest
-    ```
-
-2. In the terminal, to run the SQL Server container image, type the following command, and then press Enter:
-
-    ```-nocode
-    sudo docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Pa$$w0rdSQL' -p 1500:1433 --name sqltestcontainer -d mcr.microsoft.com/mssql/server:2017-latest
-    ```
-
-3. At the **Password** prompt, type **Pa$$w0rdLinux**, and then press Enter.
-4. When the image has been downloaded and the container started, to check that SQL Server is running in the new container, type the following command, and then press Enter:
-
-    ```-nocode
-    sudo docker ps
-    ```
-
-5. To install software dependencies for Azure Data Studio, type the following command and press Enter:
-
-    ```-nocode
-    sudo apt-get install gconf2-common libxss1 libgconf-2-4 libunwind8
-    ```
-
-6. Type **Y** if asked for confirmation.
-7. To install Azure Data Studio, type the following command, and then press Enter:
-
-    ```-nocode
-    sudo dpkg -i ./Downloads/azuredatastudio-linux-1.4.5.deb
-    ```
-
-8. At the **Password** prompt, type **Pa$$w0rdLinux**, and then press Enter.
-9. Type **y** to any confirmation questions.
-10. To start Azure Data Studio, type the following command, and then press Enter:
-
-    ```-nocode
-    azuredatastudio
-    ```
-
-11. If asked if you would like to enable preview features, click **Yes**.
-12. If asked if you would like to allow Microsoft to collect usage data, close the dialog box.
-13. In the **Connection** pane, in the **Server** box, type **localhost, 1500**.
-14. In the **Authentication type** drop-down list, click **SQL Login**.
-15. In the **User name** box, type **sa**.
-16. In the **Password** box, type **Pa$$w0rdSQL**, and then click **Connect**.
-17. In the **Tasks** section, click **New Query**.
-18. In the script window, type the following code:
-
-    ```-nocode
-    SELECT @@VERSION
-    GO
-    ```
-
-19. In the top-left of the script window, click **Run**.
-20. Switch to the terminal window.
-21. To start the Bash shell within the new container, type the following command, and then press Enter:
-
-    ```-nocode
-    sudo docker exec -it sqltestcontainer bash
-    ```
-
-22. To start the sqlcmd tool, type the following command, and then press Enter:
-
-    ```-nocode
-    /opt/mssql-tools/bin/sqlcmd -U SA -P 'Pa$$w0rdSQL'
-    ```
-
-23. To query the database server, type the following commands, and then press Enter:
-
-    ```-nocode
-    SELECT @@version
-    GO
-    ```
-
-24. To exit the sqlcmd tool, type **exit**, and then press Enter.
-25. To exit the Bash shell on the container, type **exit**, and then press Enter.
-
-## Investigate and Clean Up Containers
-
-1. To list active container instances, in the terminal, type the following command, and then press Enter:
-
-    ```-nocode
-    sudo docker ps
-    ```
-
-2. To list all container images, type the following command, and then press Enter:
-
-    ```-nocode
+    ```nocode
     sudo docker image ls
     ```
 
-3. To stop the SQL Server container, type the following command, and then press Enter:
+4. To start the container, type the following command, and then press Enter:
 
-    ```-nocode
-    sudo docker stop sqltestcontainer
+    ```nocode
+    sudo docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=Pa$$w0rdSQL' \
+      -p 1500:1433 --name sqltestcontainer2 \
+      -d mssql-with-test-database
     ```
 
-4. To check that the container is no longer running, type the following command, and then press Enter:
+## Restore the database
 
-    ```-nocode
-    sudo docker ps -a
+1. In the terminal, to restore the database file list, type the following command, and then press Enter:
+
+    ```nocode
+    sudo docker exec -it sqltestcontainer2 /opt/mssql-tools/bin/sqlcmd \
+    -S localhost -U SA -P 'Pa$$w0rdSQL' \
+    -Q 'RESTORE FILELISTONLY FROM DISK = "/var/opt/mssql/data/SampleDB.bak"' \
+    -W \
+    | tr -s ' ' | cut -d ' ' -f 1-2
     ```
 
-5. To delete the container, type the following command, and then press Enter:
+2. To restore the database, type the following command, and then press Enter:
 
-    ```-nocode
-    sudo docker rm sqltestcontainer
+    ```nocode
+    sudo docker exec -it sqltestcontainer2 /opt/mssql-tools/bin/sqlcmd \
+       -S localhost -U sa -P 'Pa$$w0rdSQL' \
+       -Q 'RESTORE DATABASE ProductCatalog FROM DISK = "/var/opt/mssql/data/SampleDB.bak" WITH MOVE "ProductCatalog" TO "/var/opt/mssql/data/ProductCatalog.mdf", MOVE "ProductCatalog_log" TO "/var/opt/mssql/data/ProductCatalog.ldf"'
     ```
 
-6. To check that the container no longer exists, type the following command, and then press Enter:
+## Run a query
 
-    ```-nocode
-    sudo docker container ls
+1. To start Azure Data Studio, type **azuredatastudio**, and then press Enter.
+2. If the **Connection** window appears, click **Cancel**.
+3. On the **File** menu, click **New Query**.
+4. In the query window, type the following code:
+
+    ```nocode
+    SELECT ProductID, Name, Price
+    FROM ProductCatalog.dbo.Product
+    ```
+
+5. To execute the query, in the top-left of the query window, click **Run**.
+6. In the **Connection** window, in the **Server** box, type **localhost, 1500**.
+7. In the **User name** box, type **sa**, in the **Password** box, type **Pa$$w0rdSQL**, and then click **Connect**.
+8. Examine the results of the query, and then close Azure Data Studio.
+
+## Stop and delete the container
+
+1. Switch to the terminal.
+2. To stop the container you have just deployed, type the following command, and then press Enter:
+
+    ```nocode
+    sudo docker stop sqltestcontainer2
+    ```
+
+3. To delete the container, type the following command, and then press Enter:
+
+    ```nocode
+    sudo docker container rm sqltestcontainer2
+    ```
+___
+
+# Unit 7: Using Docker Composer to deploy a multi-container application
+
+## Install Docker Compose
+
+1. To log on, click **Administrator**, type the password **Pa$$w0rdLinux**, and then click **Sign In**.
+2. At the bottom-left of the desktop, click **Show Applications**, and then click **Terminal**.
+3. To download Docker Compose, type the following command, and then press Enter:
+
+    ```nocode
+    sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+    ```
+
+4. At the Password prompt, type **Pa$$w0rdLinux**, and then press Enter.
+5. To mark the downloaded file as executable, type the following command, and then press Enter:
+
+    ```nocode
+    sudo chmod +x /usr/local/bin/docker-compose
+    ```
+
+6. To create a link to the downloaded executable, type the following command, and then press Enter:
+
+    ```nocode
+    sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+    ```
+
+## Complete a docker-compose.yml file
+
+1. In the terminal, to change to the right folder, type the following command, and then press Enter:
+
+    ```nocode
+    cd ~/containers/mssql-aspcore-example
+    ```
+
+2. To edit the docker-compose.yml file, type the following command, and then press Enter:
+
+    ```nocode
+    nano docker-compose.yml
+    ```
+
+3. In the editor, replace the password **safePASSWORD123** with the password **Passw0rdSQL**.
+
+    > [!IMPORTANT]
+    > Do not use dollar signs in this password as in previous units. This is because dollar signs are interpreted differently in a YAML file.
+
+4. To close the file, press Esc, and then press Ctrl+X.
+5. To save the changes, press **y**, and then press Enter.
+6. To edit the password in the **db-init.sh** file, type the following command, and then press Enter:
+
+    ```nocode
+    nano ./mssql-aspcore-example-db/db-init.sh
+    ```
+
+7. In the editor, replace the password **safePASSWORD123** with the password **Passw0rdSQL**.
+8. To close the file, press Esc, and then press Ctrl+X.
+9. To save the changes, press **y**, and then press Enter.
+
+## Start the containers
+
+1. To start the docker, type the following command, and then press Enter:
+
+    ```nocode
+    sudo systemctl start docker
+    ```
+
+2. To enable Docker Compose to download the necessary images and start the containers, type the following command, and then press Enter:
+
+    ```nocode
+    sudo docker-compose up --build
+    ```
+
+## Connect to the database by using Azure Data Studio
+
+1. To start a new instance of the terminal, at the bottom-left of the desktop, click **Show Applications**, click **All**, and then click **Terminal**.
+2. To start Azure Data Studio, type **azuredatastudio**, and then press Enter.
+3. In Azure Data Studio, if the **Connection** window is not opened, on the View menu, click **Servers**, and then click **Add Connection**.
+4. In the **Connection** window, in the **Server** box, type **localhost, 1500**.
+5. In the **User name** box, type **sa**.
+6. In the **Password** box, type **Passw0rdSQL**, and then click **Connect**.
+7. To check the tables in the new database, in the list of servers, under **localhost, 1500, &lt;default&gt; (sa)**, expand **Databases**, expand **ProductCatalog**, and then expand **Tables**.
+
+## Browse the website from the containers
+
+1. To start Firefox, in the top left of the desktop, click **Firefox Web Browser**.
+2. In the **Address** bar, type **localhost:5000**, and then press Enter.
+3. On the homepage, click **Product Catalog Demo**, and note the products are displayed. You can investigate individual products.
+4. Close **Firefox**, close **Azure Data Studio**, and then close the terminal which was used to open Azure Data Studio.
+
+## Shut down and remove the docker images
+
+1. To stop Docker Compose, in the remaining terminal, press Ctrl+C.
+2. To remove the containers and images, type the following command, and then press Enter:
+
+    ```nocode
+    sudo docker-compose down --rmi all
     ```
