@@ -125,14 +125,13 @@ ___
     sudo curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
     ```
 
-4. At the Password prompt, type **Pa$$w0rdLinux**, and then press Enter.
-5. To mark the downloaded file as executable, type the following command, and then press Enter:
+4. To mark the downloaded file as executable, type the following command, and then press Enter:
 
     ```nocode
     sudo chmod +x /usr/local/bin/docker-compose
     ```
 
-6. To create a link to the downloaded executable, type the following command, and then press Enter:
+5. To create a link to the downloaded executable, type the following command, and then press Enter:
 
     ```nocode
     sudo ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
@@ -187,7 +186,7 @@ ___
 
 1. To start a new instance of the terminal, at the bottom-left of the desktop, click **Show Applications**, click **All**, and then click **Terminal**.
 2. To start Azure Data Studio, type **azuredatastudio**, and then press Enter.
-3. In Azure Data Studio, if the **Connection** window is not opened, on the View menu, click **Servers**, and then click **Add Connection**.
+3. In Azure Data Studio, if the **Connection** window is not opened, on the **View** menu, click **Servers**, and then click **Add Connection**.
 4. In the **Connection** window, in the **Server** box, type **localhost, 1500**.
 5. In the **User name** box, type **sa**.
 6. In the **Password** box, type **Passw0rdSQL**, and then click **Connect**.
